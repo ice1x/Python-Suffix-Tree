@@ -207,7 +207,7 @@ class SuffixTree:
         return edge.first_char_index - len(substring) + ln
 
     # Public methods
-    def find_word(self, suffix):
+    def find_word_by_prefix(self, suffix):
         """
         Returns the word from dictionary by prefix or suffix or -1 if it is not found.
         """
