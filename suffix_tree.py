@@ -83,7 +83,9 @@ class SuffixTree:
 
     def __init__(self, string, case_insensitive=False):
         """
-        string      -   the string for which to construct a suffix tree
+        self.string     -   original string used to construct a suffix tree
+        self.nodes      -   list of node's
+        self.edges      -   dictionary of edges
         """
         self.string = string
         self.case_insensitive = case_insensitive
