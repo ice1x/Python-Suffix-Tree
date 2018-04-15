@@ -1,85 +1,89 @@
-class Node(object):
-    """A node in the suffix tree. 
-    
-    suffix_node
-        the index of a node with a matching suffix, representing a suffix link.
-        -1 indicates this node has no suffix link.
+class Node:
     """
+    A node in the suffix tree.
+    suffix_node     -       the index of a node with a matching suffix, representing a suffix link.
+    -1              -       indicates this node has no suffix link.
+    """
+
     def __init__(self):
-        self.suffix_node = -1   
+        self.suffix_node = -1
 
     def __repr__(self):
-        return "Node(suffix link: %d)"%self.suffix_node
+        return "Node(suffix link: %d)" % self.suffix_node
 
-class Edge(object):
-    """An edge in the suffix tree.
-    
-    first_char_index
-        index of start of string part represented by this edge
-        
-    last_char_index
-        index of end of string part represented by this edge
-        
-    source_node_index
-        index of source node of edge
-    
-    dest_node_index
-        index of destination node of edge
+
+class Edge:
     """
+    Edge in the suffix tree:
+
+    self.first_char_index    -   index of start of string part represented by this edge
+    self.last_char_index     -   index of end of string part represented by this edge
+    self.source_node_index   -   index of source node of edge
+    self.dest_node_index     -   index of destination node of edge
+
+    self.length              -   length of the string, Edge's property
+    self._repr_              -   edge data
+    """
+
     def __init__(self, first_char_index, last_char_index, source_node_index, dest_node_index):
         self.first_char_index = first_char_index
         self.last_char_index = last_char_index
         self.source_node_index = source_node_index
         self.dest_node_index = dest_node_index
-        
+
     @property
     def length(self):
         return self.last_char_index - self.first_char_index
 
     def __repr__(self):
-        return 'Edge(%d, %d, %d, %d)'% (self.source_node_index, self.dest_node_index 
-                                        ,self.first_char_index, self.last_char_index )
+        return 'Edge(%d, %d, %d, %d)' % (self.source_node_index,
+                                         self.dest_node_index,
+                                         self.first_char_index,
+                                         self.last_char_index)
 
 
-class Suffix(object):
-    """Represents a suffix from first_char_index to last_char_index.
-    
-    source_node_index
-        index of node where this suffix starts
-    
-    first_char_index
-        index of start of suffix in string
-        
-    last_char_index
-        index of end of suffix in string
+class Suffix:
     """
+    Represents a suffix from first_char_index to last_char_index:
+
+    self.source_node_index  -   index of node where this suffix starts
+    self.first_char_index   -   index of start of suffix in string
+    self.last_char_index    -   index of end of suffix in string
+
+    self.length             -   length of the string, Suffix'es property
+    self.explicit           -   suffix is ends on a node
+    self.implicit           -   !self.explicit
+    """
+
     def __init__(self, source_node_index, first_char_index, last_char_index):
         self.source_node_index = source_node_index
         self.first_char_index = first_char_index
         self.last_char_index = last_char_index
-        
+
     @property
     def length(self):
         return self.last_char_index - self.first_char_index
-                
+
     def explicit(self):
-        """A suffix is explicit if it ends on a node. first_char_index
-        is set greater than last_char_index to indicate this.
+        """
+        A suffix is explicit if it ends on a node.
+        first_char_index is set greater than last_char_index to indicate this.
         """
         return self.first_char_index > self.last_char_index
-    
+
     def implicit(self):
         return self.last_char_index >= self.first_char_index
 
-        
-class SuffixTree(object):
-    """A suffix tree for string matching. Uses Ukkonen's algorithm
-    for construction.
+
+class SuffixTree:
     """
+    A suffix tree for string matching.
+    Uses Ukkonen's algorithm for construction.
+    """
+
     def __init__(self, string, case_insensitive=False):
         """
-        string
-            the string for which to construct a suffix tree
+        string      -   the string for which to construct a suffix tree
         """
         self.string = string
         self.case_insensitive = case_insensitive
@@ -91,7 +95,7 @@ class SuffixTree(object):
             self.string = self.string.lower()
         for i in range(len(string)):
             self._add_prefix(i)
-    
+
     def __repr__(self):
         """ 
         Lists edges in the suffix tree
@@ -103,19 +107,19 @@ class SuffixTree(object):
         for edge in values:
             if edge.source_node_index == -1:
                 continue
-            s += "\t%s \t%s \t%s \t%s \t%s \t"%(edge.source_node_index
-                    ,edge.dest_node_index 
-                    ,self.nodes[edge.dest_node_index].suffix_node 
-                    ,edge.first_char_index
-                    ,edge.last_char_index)
-                    
-            
+            s += "\t%s \t%s \t%s \t%s \t%s \t" % (edge.source_node_index
+                                                  , edge.dest_node_index
+                                                  , self.nodes[edge.dest_node_index].suffix_node
+                                                  , edge.first_char_index
+                                                  , edge.last_char_index)
+
             top = min(curr_index, edge.last_char_index)
-            s += self.string[edge.first_char_index:top+1] + "\n"
+            s += self.string[edge.first_char_index:top + 1] + "\n"
         return s
-            
+
     def _add_prefix(self, last_char_index):
-        """The core construction method.
+        """
+        The core construction method.
         """
         last_parent_node = -1
         while True:
@@ -130,16 +134,15 @@ class SuffixTree(object):
                     # prefix is already in tree
                     break
                 parent_node = self._split_edge(e, self.active)
-        
 
             self.nodes.append(Node())
             e = Edge(last_char_index, self.N, parent_node, len(self.nodes) - 1)
             self._insert_edge(e)
-            
+
             if last_parent_node > 0:
                 self.nodes[last_parent_node].suffix_node = parent_node
             last_parent_node = parent_node
-            
+
             if self.active.source_node_index == 0:
                 self.active.first_char_index += 1
             else:
@@ -149,16 +152,17 @@ class SuffixTree(object):
             self.nodes[last_parent_node].suffix_node = parent_node
         self.active.last_char_index += 1
         self._canonize_suffix(self.active)
-        
+
     def _insert_edge(self, edge):
         self.edges[(edge.source_node_index, self.string[edge.first_char_index])] = edge
-        
+
     def _remove_edge(self, edge):
         self.edges.pop((edge.source_node_index, self.string[edge.first_char_index]))
-        
+
     def _split_edge(self, edge, suffix):
         self.nodes.append(Node())
-        e = Edge(edge.first_char_index, edge.first_char_index + suffix.length, suffix.source_node_index, len(self.nodes) - 1)
+        e = Edge(edge.first_char_index, edge.first_char_index + suffix.length, suffix.source_node_index,
+                 len(self.nodes) - 1)
         self._remove_edge(edge)
         self._insert_edge(e)
         self.nodes[e.dest_node_index].suffix_node = suffix.source_node_index  ### need to add node for each edge
@@ -168,7 +172,9 @@ class SuffixTree(object):
         return e.dest_node_index
 
     def _canonize_suffix(self, suffix):
-        """This canonizes the suffix, walking along its suffix string until it 
+        """
+        This canonizes the suffix,
+        walking along its suffix string until it
         is explicit or there are no more matched nodes.
         """
         if not suffix.explicit():
@@ -177,12 +183,11 @@ class SuffixTree(object):
                 suffix.first_char_index += e.length + 1
                 suffix.source_node_index = e.dest_node_index
                 self._canonize_suffix(suffix)
- 
 
     # Public methods
-    def find_substring(self, substring):
-        """Returns the index of substring in string or -1 if it
-        is not found.
+    def find_substring_index(self, substring):
+        """
+        Returns the index of substring in string or -1 if it is not found.
         """
         if not substring:
             return -1
@@ -200,8 +205,26 @@ class SuffixTree(object):
             i += edge.length + 1
             curr_node = edge.dest_node_index
         return edge.first_char_index - len(substring) + ln
-        
-    def has_substring(self, substring):
-        return self.find_substring(substring) != -1
 
-        
+    # Public methods
+    def find_word(self, suffix):
+        """
+        Returns the word from dictionary by prefix or suffix or -1 if it is not found.
+        """
+        index = self.find_substring_index(suffix)
+        word = self.string[index]
+
+        left_index = index - 1
+        while self.string[left_index] != '\n':
+            word = self.string[left_index] + word
+            left_index -= 1
+
+        right_index = index + 1
+        while self.string[right_index] != '\n':
+            word += self.string[right_index]
+            right_index += 1
+
+        return word
+
+    def has_substring(self, substring):
+        return self.find_substring_index(substring) != -1
